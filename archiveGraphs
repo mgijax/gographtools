@@ -1,0 +1,129 @@
+#!/bin/sh
+#
+#  archiveGraphs
+###########################################################################
+#
+#  Purpose:  This script will archive the marker and/or orthology GO graphs.
+#            The archive file(s) will be created in the GO graph directory.
+#
+#  Usage:
+#
+#      archiveGraphs  { -m -o }
+#
+#          where
+#              -m is an option that tells the script to archive the
+#                  marker GO graphs
+#              -o is an option that tells the script to archive the
+#                  orthology GO graphs
+#
+#  Env Vars:
+#
+#      See the configuration file.
+#
+#  Inputs:
+#
+#      - A set of marker and/or orthology GO graphs
+#
+#  Outputs:
+#
+#      - Archive files for the marker and/or orthology GO graphs
+#
+#  Exit Codes:
+#
+#      0:  Successful completion
+#      1:  Fatal error occurred
+#
+#  Assumes:  None
+#
+#  Implementation:
+#
+#  Notes:  None
+#
+###########################################################################
+
+cd `dirname $0`
+
+. ./Configuration
+
+USAGE="Usage: $0 { -m -o }"
+
+MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.cpio
+ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.cpio
+
+DO_MARKER=No
+DO_ORTHOLOGY=No
+
+#
+# Check the arguments to the script to determine what type of GO graphs
+# need to be archived.
+#
+ARGS=`getopt mo $*`
+if [ $? != 0 ]
+then
+    echo ${USAGE}
+    exit 1
+fi
+set -- ${ARGS}
+for i
+do
+    case $i in
+        -m) DO_MARKER=Yes; shift;;
+        -o) DO_ORTHOLOGY=Yes; shift;;
+        --) shift; break;;
+    esac
+done
+
+#
+# Exit the script if neither marker nor orthology options were used.
+#
+if [ "${DO_MARKER}" = "No" -a "${DO_ORTHOLOGY}" = "No" ]
+then
+    echo ${USAGE}
+    exit 1
+fi
+
+#
+# Archive the marker GO graphs.
+#
+if [ "${DO_MARKER}" = "Yes" ]
+then
+    #
+    # Make sure the source marker directory exists.
+    #
+    if [ ! -d ${GOGRAPHS_BUILD_DIR}/marker ]
+    then
+        echo "Directory does not exists: ${GOGRAPHS_BUILD_DIR}/marker"
+        exit 1
+    fi
+
+    #
+    # Create the archive.
+    #
+    echo "Creating marker graph archive: ${MARKER_ARCHIVE}"
+    cd ${GOGRAPHS_BUILD_DIR}/marker
+    find . -print | cpio -o > ${MARKER_ARCHIVE}
+fi
+
+#
+# Archive the orthology GO graphs.
+#
+if [ "${DO_ORTHOLOGY}" = "Yes" ]
+then
+    #
+    # Make sure the source orthology directory exists.
+    #
+    if [ ! -d ${GOGRAPHS_BUILD_DIR}/orthology ]
+    then
+        echo "Directory does not exists: ${GOGRAPHS_BUILD_DIR}/orthology"
+        exit 1
+    fi
+
+    #
+    # Create the archive.
+    #
+    echo "Creating orthology graph archive: ${ORTHOLOGY_ARCHIVE}"
+    cd ${GOGRAPHS_BUILD_DIR}/orthology
+    find . -print | cpio -o > ${ORTHOLOGY_ARCHIVE}
+fi
+
+exit 0

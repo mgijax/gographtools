@@ -1,0 +1,141 @@
+#!/bin/sh
+#
+#  installGraphs
+###########################################################################
+#
+#  Purpose:  This script will copy marker and/or orthology GO graphs into
+#            a new directories, change the symbolic link(s) and update
+#            the WI.
+#
+#  Usage:
+#
+#      installGraphs  { -m new_marker_directory -o new_orthology_directory }
+#
+#          where
+#              -m is an option used to specify a new directory name to copy
+#                  marker GO graphs into
+#              -o is an option used to specify a new directory name to copy
+#                  orthology GO graphs into
+#
+#  Env Vars:
+#
+#      See the configuration file.
+#
+#  Inputs:
+#
+#      - A set of marker and/or orthology GO graphs
+#
+#  Outputs:
+#
+#      - New marker and/or orthology GO graph directories
+#
+#  Exit Codes:
+#
+#      0:  Successful completion
+#      1:  Fatal error occurred
+#
+#  Assumes:  None
+#
+#  Implementation:
+#
+#  Notes:  None
+#
+###########################################################################
+
+cd `dirname $0`
+
+. ./Configuration
+
+USAGE="Usage: $0 { -m new_marker_directory -o new_orthology_directory }"
+
+COPY_SCRIPT=`pwd`/copyGraphs
+
+MARKER_DIR=""
+ORTHOLOGY_DIR=""
+
+#
+# Check the arguments to the script to determine what type of GO graphs
+# need to be copied.
+#
+ARGS=`getopt m:o: $*`
+if [ $? != 0 ]
+then
+    echo ${USAGE}
+    exit 1
+fi
+set -- ${ARGS}
+for i
+do
+    case $i in
+        -m) shift; MARKER_DIR=$1; shift;;
+        -o) shift; ORTHOLOGY_DIR=$1; shift;;
+        --) shift; break;;
+    esac
+done
+
+#
+# Exit the script if neither marker nor orthology options were used. 
+#
+if [ "${MARKER_DIR}" = "" -a "${ORTHOLOGY_DIR}" = "" ]
+then
+    echo ${USAGE}
+    exit 1
+fi
+
+#
+# Set up new marker graphs.
+#
+if [ "${MARKER_DIR}" != "" ]
+then
+    #
+    # Copy the marker GO graphs to the new directory.
+    #
+    ${COPY_SCRIPT} -m ${MARKER_DIR}
+    if [ $? -ne 0 ]
+    then
+        exit 1
+    fi
+
+    #
+    # Swap the symbolic link to the new directory.
+    #
+    echo "Create symbolic link: marker -> ${MARKER_DIR}"
+    cd ${GOGRAPHS_DIR}
+    rm -f marker
+    ln -s ${MARKER_DIR} marker
+fi
+
+#
+# Set up new orthology graphs.
+#
+if [ "${ORTHOLOGY_DIR}" != "" ]
+then
+    #
+    # Copy the orthology GO graphs to the new directory.
+    #
+    ${COPY_SCRIPT} -o ${ORTHOLOGY_DIR}
+    if [ $? -ne 0 ]
+    then
+        exit 1
+    fi
+
+    #
+    # Swap the symbolic link to the new directory.
+    #
+    echo "Create symbolic link: orthology -> ${ORTHOLOGY_DIR}"
+    cd ${GOGRAPHS_DIR}
+    rm -f orthology
+    ln -s ${ORTHOLOGY_DIR} orthology
+fi
+
+#
+# Update the WI.
+#
+if [ -d ${MGI_LIVE}/wi ]
+then
+    cd ${MGI_LIVE}/wi/admin
+    echo "Run download_goGraphs on the WI"
+    download_goGraphs
+fi
+
+exit 0

@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#
+#  Configuration.default (Bourne Shell)
+#
+
+#
+#  If the MGICONFIG environment variable does not have a local override,
+#  use the default "live" settings.
+#
+if [ "${MGICONFIG}" = "" ]
+then
+    MGICONFIG=/usr/local/mgi/live/mgiconfig
+    export MGICONFIG
+fi
+
+. ${MGICONFIG}/master.config.sh
+
+# The directory under which the marker and orthology GO graphs are created.
+#
+GOGRAPHS_BUILD_DIR=/home/mdolan/gographs
+export GOGRAPHS_BUILD_DIR
+
+# The directory where the GO graphs are installed.
+#
+GOGRAPHS_DIR=/data/GOgraphs
+export GOGRAPHS_DIR
+
+# The names of the archive files that are created when copying the GO graphs
+# to another server.
+#
+MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.cpio
+ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.cpio
+export MARKER_ARCHIVE ORTHOLOGY_ARCHIVE

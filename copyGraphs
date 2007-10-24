@@ -1,0 +1,144 @@
+#!/bin/sh
+#
+#  copyGraphs
+###########################################################################
+#
+#  Purpose:  This script will copy marker and/or orthology GO graphs into
+#            a new directories under the GO graphs directory.
+#
+#  Usage:
+#
+#      copyGraphs  { -m new_marker_directory -o new_orthology_directory }
+#
+#          where
+#              -m is an option used to specify a new directory name to copy
+#                  marker GO graphs into
+#              -o is an option used to specify a new directory name to copy
+#                  orthology GO graphs into
+#
+#  Env Vars:
+#
+#      See the configuration file.
+#
+#  Inputs:
+#
+#      - A set of marker and/or orthology GO graphs
+#
+#  Outputs:
+#
+#      - New marker and/or orthology GO graph directories
+#
+#  Exit Codes:
+#
+#      0:  Successful completion
+#      1:  Fatal error occurred
+#
+#  Assumes:  None
+#
+#  Implementation:
+#
+#  Notes:  None
+#
+###########################################################################
+
+cd `dirname $0`
+
+. ./Configuration
+
+USAGE="Usage: $0 { -m new_marker_directory -o new_orthology_directory }"
+
+MARKER_DIR=""
+ORTHOLOGY_DIR=""
+
+#
+# Check the arguments to the script to determine what type of GO graphs
+# need to be copied.
+#
+ARGS=`getopt m:o: $*`
+if [ $? != 0 ]
+then
+    echo ${USAGE}
+    exit 1
+fi
+set -- ${ARGS}
+for i
+do
+    case $i in
+        -m) shift; MARKER_DIR=$1; shift;;
+        -o) shift; ORTHOLOGY_DIR=$1; shift;;
+        --) shift; break;;
+    esac
+done
+
+#
+# Exit the script if neither marker nor orthology options were used. 
+#
+if [ "${MARKER_DIR}" = "" -a "${ORTHOLOGY_DIR}" = "" ]
+then
+    echo ${USAGE}
+    exit 1
+fi
+
+#
+# Set up new marker GO graphs.
+#
+if [ "${MARKER_DIR}" != "" ]
+then
+    #
+    # Make sure the new marker directory does not already exist.
+    #
+    cd ${GOGRAPHS_DIR}
+    if [ -d ${MARKER_DIR} ]
+    then
+        echo "Directory already exists: ${MARKER_DIR}"
+        exit 1
+    fi
+
+    #
+    # Make sure the source marker directory exists.
+    #
+    if [ ! -d ${GOGRAPHS_BUILD_DIR}/marker ]
+    then
+        echo "Directory does not exists: ${GOGRAPHS_BUILD_DIR}/marker"
+        exit 1
+    fi
+
+    #
+    # Copy the marker GO graphs to the new directory.
+    #
+    echo "Copy marker graphs to: ${GOGRAPHS_DIR}/${MARKER_DIR}"
+    cp -R ${GOGRAPHS_BUILD_DIR}/marker ${MARKER_DIR}
+fi
+
+#
+# Set up new orthology GO graphs.
+#
+if [ "${ORTHOLOGY_DIR}" != "" ]
+then
+    #
+    # Make sure the new orthology directory does not already exist.
+    #
+    cd ${GOGRAPHS_DIR}
+    if [ -d ${ORTHOLOGY_DIR} ]
+    then
+        echo "Directory already exists: ${ORTHOLOGY_DIR}"
+        exit 1
+    fi
+
+    #
+    # Make sure the source orthology directory exists.
+    #
+    if [ ! -d ${GOGRAPHS_BUILD_DIR}/orthology ]
+    then
+        echo "Directory does not exists: ${GOGRAPHS_BUILD_DIR}/orthology"
+        exit 1
+    fi
+
+    #
+    # Copy the orthology GO graphs to the new directory.
+    #
+    echo "Copy orthology graphs to: ${GOGRAPHS_DIR}/${ORTHOLOGY_DIR}"
+    cp -R ${GOGRAPHS_BUILD_DIR}/orthology ${ORTHOLOGY_DIR}
+fi
+
+exit 0
