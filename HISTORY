@@ -1,3 +1,10 @@
+TAG: gographtools-3-5-4-2
+DATE: 12/13/2007
+STAFF: dbm
+CHANGES:
+1) Added OrthoDisease graphs (TR8673)
+2) Factored out common code into functions within each shell script
+
 TAG: gographtools-3-5-4-1
 DATE: 10/24/2007
 STAFF: dbm
