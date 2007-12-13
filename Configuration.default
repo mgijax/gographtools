@@ -16,7 +16,7 @@ fi
 
 . ${MGICONFIG}/master.config.sh
 
-# The directory under which the marker and orthology GO graphs are created.
+# The directory under which the GO graphs directories are created.
 #
 GOGRAPHS_BUILD_DIR=/home/mdolan/gographs
 export GOGRAPHS_BUILD_DIR
@@ -26,9 +26,24 @@ export GOGRAPHS_BUILD_DIR
 GOGRAPHS_DIR=/data/GOgraphs
 export GOGRAPHS_DIR
 
-# The names of the archive files that are created when copying the GO graphs
+# The name of the source directory where the GO graphs are copied from.
+#
+ORTHODISEASE_SRC_DIR=${GOGRAPHS_BUILD_DIR}/OrthoDisease
+MARKER_SRC_DIR=${GOGRAPHS_BUILD_DIR}/marker
+ORTHOLOGY_SRC_DIR=${GOGRAPHS_BUILD_DIR}/orthology
+export ORTHODISEASE_SRC_DIR MARKER_SRC_DIR ORTHOLOGY_SRC_DIR
+
+# The name of the symbolic link that is created in the GO graph directory.
+#
+ORTHODISEASE_LINK=OrthoDisease
+MARKER_LINK=marker
+ORTHOLOGY_LINK=orthology
+export ORTHODISEASE_LINK MARKER_LINK ORTHOLOGY_LINK
+
+# The name of the archive file that is created when copying the GO graphs
 # to another server.
 #
+ORTHODISEASE_ARCHIVE=${GOGRAPHS_DIR}/OrthoDisease.cpio
 MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.cpio
 ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.cpio
-export MARKER_ARCHIVE ORTHOLOGY_ARCHIVE
+export ORTHODISEASE_ARCHIVE MARKER_ARCHIVE ORTHOLOGY_ARCHIVE

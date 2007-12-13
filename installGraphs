@@ -3,15 +3,18 @@
 #  installGraphs
 ###########################################################################
 #
-#  Purpose:  This script will copy marker and/or orthology GO graphs into
-#            a new directories, change the symbolic link(s) and update
-#            the WI.
+#  Purpose:  This script will copy 1 or more types of GO graphs into new
+#            directories, change the symbolic link(s) and update the WI.
 #
 #  Usage:
 #
-#      installGraphs  { -m new_marker_directory -o new_orthology_directory }
+#      installGraphs  { -d new_orthodisease_directory
+#                       -m new_marker_directory
+#                       -o new_orthology_directory }
 #
 #          where
+#              -d is an option used to specify a new directory name to copy
+#                  ortho disease GO graphs into
 #              -m is an option used to specify a new directory name to copy
 #                  marker GO graphs into
 #              -o is an option used to specify a new directory name to copy
@@ -23,11 +26,11 @@
 #
 #  Inputs:
 #
-#      - A set of marker and/or orthology GO graphs
+#      - 1 or more sets of GO graphs
 #
 #  Outputs:
 #
-#      - New marker and/or orthology GO graph directories
+#      - 1 or more new GO graph directories
 #
 #  Exit Codes:
 #
@@ -46,10 +49,16 @@ cd `dirname $0`
 
 . ./Configuration
 
-USAGE="Usage: $0 { -m new_marker_directory -o new_orthology_directory }"
+showUsage ()
+{
+echo "Usage: $0 { -d new_orthodisease_directory"
+echo "           -m new_marker_directory"
+echo "           -o new_orthology_directory }"
+}
 
 COPY_SCRIPT=`pwd`/copyGraphs
 
+ORTHODISEASE_DIR=""
 MARKER_DIR=""
 ORTHOLOGY_DIR=""
 
@@ -57,16 +66,17 @@ ORTHOLOGY_DIR=""
 # Check the arguments to the script to determine what type of GO graphs
 # need to be copied.
 #
-ARGS=`getopt m:o: $*`
+ARGS=`getopt d:m:o: $*`
 if [ $? != 0 ]
 then
-    echo ${USAGE}
+    showUsage
     exit 1
 fi
 set -- ${ARGS}
 for i
 do
     case $i in
+        -d) shift; ORTHODISEASE_DIR=$1; shift;;
         -m) shift; MARKER_DIR=$1; shift;;
         -o) shift; ORTHOLOGY_DIR=$1; shift;;
         --) shift; break;;
@@ -74,23 +84,27 @@ do
 done
 
 #
-# Exit the script if neither marker nor orthology options were used. 
+# Exit the script if no options were used. 
 #
-if [ "${MARKER_DIR}" = "" -a "${ORTHOLOGY_DIR}" = "" ]
+if [ "${ORTHODISEASE_DIR}" = "" -a "${MARKER_DIR}" = "" -a "${ORTHOLOGY_DIR}" = "" ]
 then
-    echo ${USAGE}
+    showUsage
     exit 1
 fi
 
 #
-# Set up new marker graphs.
+# Function to install a specific set of GO graphs.
 #
-if [ "${MARKER_DIR}" != "" ]
-then
+doInstall ()
+{
+    OPTION=$1    # Option that determines the type of GO graphs.
+    NEW_DIR=$2   # Name of the new directory to be created.
+    SYM_LINK=$3  # Name of the symbolic link to point to the new directory.
+
     #
-    # Copy the marker GO graphs to the new directory.
+    # Copy the GO graphs to the new directory.
     #
-    ${COPY_SCRIPT} -m ${MARKER_DIR}
+    ${COPY_SCRIPT} ${OPTION} ${NEW_DIR}
     if [ $? -ne 0 ]
     then
         exit 1
@@ -99,33 +113,34 @@ then
     #
     # Swap the symbolic link to the new directory.
     #
-    echo "Create symbolic link: marker -> ${MARKER_DIR}"
+    echo "Create symbolic link: ${SYM_LINK} -> ${NEW_DIR}"
     cd ${GOGRAPHS_DIR}
-    rm -f marker
-    ln -s ${MARKER_DIR} marker
+    rm -f ${SYM_LINK}
+    ln -s ${NEW_DIR} ${SYM_LINK}
+}
+
+#
+# Set up new ortho disease GO graphs.
+#
+if [ "${ORTHODISEASE_DIR}" != "" ]
+then
+    doInstall -d ${ORTHODISEASE_DIR} ${ORTHODISEASE_LINK}
 fi
 
 #
-# Set up new orthology graphs.
+# Set up new marker GO graphs.
+#
+if [ "${MARKER_DIR}" != "" ]
+then
+    doInstall -m ${MARKER_DIR} ${MARKER_LINK}
+fi
+
+#
+# Set up new orthology GO graphs.
 #
 if [ "${ORTHOLOGY_DIR}" != "" ]
 then
-    #
-    # Copy the orthology GO graphs to the new directory.
-    #
-    ${COPY_SCRIPT} -o ${ORTHOLOGY_DIR}
-    if [ $? -ne 0 ]
-    then
-        exit 1
-    fi
-
-    #
-    # Swap the symbolic link to the new directory.
-    #
-    echo "Create symbolic link: orthology -> ${ORTHOLOGY_DIR}"
-    cd ${GOGRAPHS_DIR}
-    rm -f orthology
-    ln -s ${ORTHOLOGY_DIR} orthology
+    doInstall -o ${ORTHOLOGY_DIR} ${ORTHOLOGY_LINK}
 fi
 
 #

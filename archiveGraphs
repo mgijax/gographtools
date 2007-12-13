@@ -3,14 +3,16 @@
 #  archiveGraphs
 ###########################################################################
 #
-#  Purpose:  This script will archive the marker and/or orthology GO graphs.
+#  Purpose:  This script will archive 1 or more types of GO graphs.
 #            The archive file(s) will be created in the GO graph directory.
 #
 #  Usage:
 #
-#      archiveGraphs  { -m -o }
+#      archiveGraphs  { -d -m -o }
 #
 #          where
+#              -d is an option that tells the script to archive the
+#                  ortho disease GO graphs
 #              -m is an option that tells the script to archive the
 #                  marker GO graphs
 #              -o is an option that tells the script to archive the
@@ -22,11 +24,11 @@
 #
 #  Inputs:
 #
-#      - A set of marker and/or orthology GO graphs
+#      - 1 or more sets of GO graphs
 #
 #  Outputs:
 #
-#      - Archive files for the marker and/or orthology GO graphs
+#      - Archive files for 1 or more sets of GO graphs
 #
 #  Exit Codes:
 #
@@ -45,11 +47,12 @@ cd `dirname $0`
 
 . ./Configuration
 
-USAGE="Usage: $0 { -m -o }"
+showUsage ()
+{
+echo "Usage: $0 { -d -m -o }"
+}
 
-MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.cpio
-ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.cpio
-
+DO_ORTHODISEASE=No
 DO_MARKER=No
 DO_ORTHOLOGY=No
 
@@ -57,16 +60,17 @@ DO_ORTHOLOGY=No
 # Check the arguments to the script to determine what type of GO graphs
 # need to be archived.
 #
-ARGS=`getopt mo $*`
+ARGS=`getopt dmo $*`
 if [ $? != 0 ]
 then
-    echo ${USAGE}
+    showUsage
     exit 1
 fi
 set -- ${ARGS}
 for i
 do
     case $i in
+        -d) DO_ORTHODISEASE=Yes; shift;;
         -m) DO_MARKER=Yes; shift;;
         -o) DO_ORTHOLOGY=Yes; shift;;
         --) shift; break;;
@@ -74,12 +78,46 @@ do
 done
 
 #
-# Exit the script if neither marker nor orthology options were used.
+# Exit the script if no options were used.
 #
-if [ "${DO_MARKER}" = "No" -a "${DO_ORTHOLOGY}" = "No" ]
+if [ "${DO_ORTHODISEASE}" = "No" -a "${DO_MARKER}" = "No" -a "${DO_ORTHOLOGY}" = "No" ]
 then
-    echo ${USAGE}
+    showUsage
     exit 1
+fi
+
+#
+# Function to archive a specific set of GO graphs.
+#
+doArchive ()
+{
+    ARCHIVE_FILE=$1  # Name of the archive file to be created.
+    SOURCE_DIR=$2    # Full path of the directory to be archived.
+
+    #
+    # Make sure the source directory exists.
+    #
+    if [ ! -d ${SOURCE_DIR} ]
+    then
+        echo "Directory does not exists: ${SOURCE_DIR}"
+        exit 1
+    fi
+
+    #
+    # Create the archive.
+    #
+    echo "Archive file: ${ARCHIVE_FILE}"
+    cd ${SOURCE_DIR}
+    find . -print | cpio -o > ${ARCHIVE_FILE}
+}
+
+#
+# Archive the ortho disease GO graphs.
+#
+if [ "${DO_ORTHODISEASE}" = "Yes" ]
+then
+    echo "Create ortho disease GO graph archive"
+    doArchive ${ORTHODISEASE_ARCHIVE} ${ORTHODISEASE_SRC_DIR}
 fi
 
 #
@@ -87,21 +125,8 @@ fi
 #
 if [ "${DO_MARKER}" = "Yes" ]
 then
-    #
-    # Make sure the source marker directory exists.
-    #
-    if [ ! -d ${GOGRAPHS_BUILD_DIR}/marker ]
-    then
-        echo "Directory does not exists: ${GOGRAPHS_BUILD_DIR}/marker"
-        exit 1
-    fi
-
-    #
-    # Create the archive.
-    #
-    echo "Creating marker graph archive: ${MARKER_ARCHIVE}"
-    cd ${GOGRAPHS_BUILD_DIR}/marker
-    find . -print | cpio -o > ${MARKER_ARCHIVE}
+    echo "Create marker GO graph archive"
+    doArchive ${MARKER_ARCHIVE} ${MARKER_SRC_DIR}
 fi
 
 #
@@ -109,21 +134,8 @@ fi
 #
 if [ "${DO_ORTHOLOGY}" = "Yes" ]
 then
-    #
-    # Make sure the source orthology directory exists.
-    #
-    if [ ! -d ${GOGRAPHS_BUILD_DIR}/orthology ]
-    then
-        echo "Directory does not exists: ${GOGRAPHS_BUILD_DIR}/orthology"
-        exit 1
-    fi
-
-    #
-    # Create the archive.
-    #
-    echo "Creating orthology graph archive: ${ORTHOLOGY_ARCHIVE}"
-    cd ${GOGRAPHS_BUILD_DIR}/orthology
-    find . -print | cpio -o > ${ORTHOLOGY_ARCHIVE}
+    echo "Create orthology GO graph archive"
+    doArchive ${ORTHOLOGY_ARCHIVE} ${ORTHOLOGY_SRC_DIR}
 fi
 
 exit 0

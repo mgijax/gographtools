@@ -3,15 +3,19 @@
 #  extractGraphs
 ###########################################################################
 #
-#  Purpose:  This script will extract the marker and/or orthology GO graphs
-#            from the archive file(s) into new directories. Each new
-#            directory is created under the GO graph directory.
+#  Purpose:  This script will extract 1 or more types of GO graphs from
+#            archive file(s) into new directories. Each new directory is
+#            created under the GO graph directory.
 #
 #  Usage:
 #
-#         extractGraphs { -m new_marker_directory -o new_orthology_directory }
+#      extractGraphs  { -d new_orthodisease_directory
+#                       -m new_marker_directory
+#                       -o new_orthology_directory }
 #
 #          where
+#              -d is an option used to specify a new directory name to copy
+#                  ortho disease GO graphs into
 #              -m is an option used to specify a new directory name to copy
 #                  marker GO graphs into
 #              -o is an option used to specify a new directory name to copy
@@ -23,11 +27,11 @@
 #
 #  Inputs:
 #
-#      - Marker and/or orthology archive files
+#      - 1 or more archive files
 #
 #  Outputs:
 #
-#      - New marker and/or orthology GO graph directories
+#      - 1 or more new GO graph directories
 #
 #  Exit Codes:
 #
@@ -36,9 +40,11 @@
 #
 #  Assumes:
 #
-#      1) The marker GO graphs archive exists in the GO graph directory
+#      1) The ortho disease GO graphs archive exists in the GO graph directory
+#         when the "-d" option is used.
+#      2) The marker GO graphs archive exists in the GO graph directory
 #         when the "-m" option is used.
-#      2) The orthology GO graphs archive exists in the GO graph directory
+#      3) The orthology GO graphs archive exists in the GO graph directory
 #         when the "-o" option is used.
 #
 #  Implementation:
@@ -51,11 +57,14 @@ cd `dirname $0`
 
 . ./Configuration
 
-USAGE="Usage: $0 { -m new_marker_directory -o new_orthology_directory }"
+showUsage ()
+{
+echo "Usage: $0 { -d new_orthodisease_directory"
+echo "           -m new_marker_directory"
+echo "           -o new_orthology_directory }"
+}
 
-MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.cpio
-ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.cpio
-
+ORTHODISEASE_DIR=""
 MARKER_DIR=""
 ORTHOLOGY_DIR=""
 
@@ -63,16 +72,17 @@ ORTHOLOGY_DIR=""
 # Check the arguments to the script to determine what type of GO graphs
 # need to be extracted.
 #
-ARGS=`getopt m:o: $*`
+ARGS=`getopt d:m:o: $*`
 if [ $? != 0 ]
 then
-    echo ${USAGE}
+    showUsage
     exit 1
 fi
 set -- ${ARGS}
 for i
 do
     case $i in
+        -d) shift; ORTHODISEASE_DIR=$1; shift;;
         -m) shift; MARKER_DIR=$1; shift;;
         -o) shift; ORTHOLOGY_DIR=$1; shift;;
         --) shift; break;;
@@ -80,12 +90,58 @@ do
 done
 
 #
-# Exit the script if neither marker nor orthology options were used.
+# Exit the script if no options were used.
 #
-if [ "${MARKER_DIR}" = "" -a "${ORTHOLOGY_DIR}" = "" ]
+if [ "${ORTHODISEASE_DIR}" = "" -a "${MARKER_DIR}" = "" -a "${ORTHOLOGY_DIR}" = "" ]
 then
-    echo ${USAGE}
+    showUsage
     exit 1
+fi
+
+#
+# Function to extract GO graphs from an archive file to a new directory.
+#
+doExtract ()
+{
+    ARCHIVE_FILE=$1  # Name of the archive file to be created.
+    NEW_DIR=$2       # Name of the new directory to be created.
+
+    #
+    # Make sure the archive file exists.
+    #
+    if [ ! -r ${ARCHIVE_FILE} ]
+    then
+        echo "Missing archive file: ${ARCHIVE_FILE}"
+        exit 1
+    fi
+    echo "Archive file: ${ARCHIVE_FILE}"
+
+    #
+    # Make sure the new directory does not already exist and create it.
+    #
+    cd ${GOGRAPHS_DIR}
+    if [ -d ${NEW_DIR} ]
+    then
+        echo "Directory already exists: ${NEW_DIR}"
+        exit 1
+    fi
+    mkdir ${NEW_DIR}
+
+    #
+    # Extract the GO graph archive into the new directory.
+    #
+    cd ${NEW_DIR}
+    echo "Extract GO graphs to: ${GOGRAPHS_DIR}/${NEW_DIR}"
+    cpio -idmu < ${ARCHIVE_FILE}
+}
+
+#
+# Set up new ortho disease GO graphs.
+#
+if [ "${ORTHODISEASE_DIR}" != "" ]
+then
+    echo "Extract ortho disease GO graphs"
+    doExtract ${ORTHODISEASE_ARCHIVE} ${ORTHODISEASE_DIR}
 fi
 
 #
@@ -93,34 +149,8 @@ fi
 #
 if [ "${MARKER_DIR}" != "" ]
 then
-    #
-    # Make sure the marker GO graph archive exists.
-    #
-    if [ ! -r ${MARKER_ARCHIVE} ]
-    then
-        echo "Missing marker graph archive: ${MARKER_ARCHIVE}"
-        exit 1
-    fi
-    echo "Marker GO graph archive: ${MARKER_ARCHIVE}"
-
-    #
-    # Make sure the new marker directory does not already exist and
-    # create it.
-    #
-    cd ${GOGRAPHS_DIR}
-    if [ -d ${MARKER_DIR} ]
-    then
-        echo "Directory already exists: ${MARKER_DIR}"
-        exit 1
-    fi
-    mkdir ${MARKER_DIR}
-
-    #
-    # Extract the marker GO graph archive into the new directory.
-    #
-    cd ${MARKER_DIR}
-    echo "Extract marker GO graphs to: ${GOGRAPHS_DIR}/${MARKER_DIR}"
-    cpio -idmu < ${MARKER_ARCHIVE}
+    echo "Extract marker GO graphs"
+    doExtract ${MARKER_ARCHIVE} ${MARKER_DIR}
 fi
 
 #
@@ -128,34 +158,8 @@ fi
 #
 if [ "${ORTHOLOGY_DIR}" != "" ]
 then
-    #
-    # Make sure the orthology GO graph archive exists.
-    #
-    if [ ! -r ${ORTHOLOGY_ARCHIVE} ]
-    then
-        echo "Missing orthology graph archive: ${ORTHOLOGY_ARCHIVE}"
-        exit 1
-    fi
-    echo "Orthology GO graph archive: ${ORTHOLOGY_ARCHIVE}"
-
-    #
-    # Make sure the new orthology directory does not already exist and
-    # create it.
-    #
-    cd ${GOGRAPHS_DIR}
-    if [ -d ${ORTHOLOGY_DIR} ]
-    then
-        echo "Directory already exists: ${ORTHOLOGY_DIR}"
-        exit 1
-    fi
-    mkdir ${ORTHOLOGY_DIR}
-
-    #
-    # Extract the orthology GO graph archive into the new directory.
-    #
-    cd ${ORTHOLOGY_DIR}
-    echo "Extract orthology GO graphs to: ${GOGRAPHS_DIR}/${ORTHOLOGY_DIR}"
-    cpio -idmu < ${ORTHOLOGY_ARCHIVE}
+    echo "Extract orthology GO graphs"
+    doExtract ${ORTHOLOGY_ARCHIVE} ${ORTHOLOGY_DIR}
 fi
 
 exit 0
