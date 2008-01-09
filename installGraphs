@@ -143,14 +143,4 @@ then
     doInstall -o ${ORTHOLOGY_DIR} ${ORTHOLOGY_LINK}
 fi
 
-#
-# Update the WI.
-#
-if [ -d ${MGI_LIVE}/wi ]
-then
-    cd ${MGI_LIVE}/wi/admin
-    echo "Run download_goGraphs on the WI"
-    download_goGraphs
-fi
-
 exit 0
