@@ -1,3 +1,10 @@
+TAG: gographtools-3-5-4-3
+DATE: 1/9/2007
+STAFF: dbm
+CHANGES:
+1) InstallGraphs should not always run download_goGraphs because this step
+   is only needed for the orthology graphs and must be after tomcat restart.
+
 TAG: gographtools-3-5-4-2
 DATE: 12/13/2007
 STAFF: dbm
