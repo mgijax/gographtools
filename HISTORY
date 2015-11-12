@@ -1,5 +1,13 @@
+TAG: gographtools-6-0-1-1
+DATE: 11/12/2015
+STAFF: dbm
+CHANGES:
+1) Configuration.default: Rename archive files with "tar.gz" suffix
+2) archiveGraphs: Use "tar -czf" instead of cpio to create archive
+3) extractGraphs: Use "tar -xzf" instead of cpio to extract archive
+
 TAG: gographtools-3-5-4-3
-DATE: 1/9/2007
+DATE: 1/9/2008
 STAFF: dbm
 CHANGES:
 1) InstallGraphs should not always run download_goGraphs because this step
