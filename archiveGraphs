@@ -108,7 +108,7 @@ doArchive ()
     #
     echo "Archive file: ${ARCHIVE_FILE}"
     cd ${SOURCE_DIR}
-    find . -print | cpio -o > ${ARCHIVE_FILE}
+    tar -czf ${ARCHIVE_FILE} . 
 }
 
 #

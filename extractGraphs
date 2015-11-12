@@ -132,7 +132,7 @@ doExtract ()
     #
     cd ${NEW_DIR}
     echo "Extract GO graphs to: ${GOGRAPHS_DIR}/${NEW_DIR}"
-    cpio -idmu < ${ARCHIVE_FILE}
+    tar -xzf ${ARCHIVE_FILE}
 }
 
 #

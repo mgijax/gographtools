@@ -43,7 +43,7 @@ export ORTHODISEASE_LINK MARKER_LINK ORTHOLOGY_LINK
 # The name of the archive file that is created when copying the GO graphs
 # to another server.
 #
-ORTHODISEASE_ARCHIVE=${GOGRAPHS_DIR}/OrthoDisease.cpio
-MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.cpio
-ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.cpio
+ORTHODISEASE_ARCHIVE=${GOGRAPHS_DIR}/OrthoDisease.tar.gz
+MARKER_ARCHIVE=${GOGRAPHS_DIR}/marker.tar.gz
+ORTHOLOGY_ARCHIVE=${GOGRAPHS_DIR}/orthology.tar.gz
 export ORTHODISEASE_ARCHIVE MARKER_ARCHIVE ORTHOLOGY_ARCHIVE
